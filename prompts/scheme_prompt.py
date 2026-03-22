@@ -8,21 +8,24 @@ def build_scheme_prompt(user_profile, context):
     return f"""
 You are an expert on Indian government schemes.
 
-Based on the user profile below, identify relevant government schemes from the context provided.
-Explain each scheme in simple, clear English.
+Based on the user profile below, identify relevant government schemes.
 
 User Profile:
 {user_profile}
 
-Relevant Schemes from Database:
+Relevant Schemes:
 {schemes_text}
 
 Instructions:
-- List only schemes relevant to the user profile
-- For each scheme explain: What it is, Who is eligible, What are the benefits, How to apply
-- Use simple language, avoid government jargon
-- If no schemes match, say "No matching schemes found for your profile"
-- Add this disclaimer at the end: "Please visit myscheme.gov.in or consult your local government office for official information."
+- List MAXIMUM 3 most relevant schemes
+- Use EXACTLY this format for each scheme:
 
-Response:
+### 1. [Scheme Name]
+**What is it:** [one line explanation]
+**Who can apply:** [eligibility in simple words]
+**Benefits:** [what you get]
+**How to apply:** [steps]
+
+- Use simple language
+- If no schemes match say "No matching schemes found"
 """
