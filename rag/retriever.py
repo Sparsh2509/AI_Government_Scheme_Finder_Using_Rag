@@ -13,7 +13,7 @@ def retrieve_schemes(query):
         embedding=embeddings
     )
     
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 5, "score_threshold": 0.3})
     docs = retriever.invoke(query)
     
     return docs
