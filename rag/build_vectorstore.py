@@ -1,5 +1,5 @@
 from huggingface_hub import hf_hub_download, list_repo_files
-from langchain_qdrant import Qdrant
+from langchain_qdrant import QdrantVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
@@ -94,10 +94,10 @@ def build_vectorstore(limit=500):
         vectors_config=VectorParams(size=384, distance=Distance.COSINE)
     )
 
-    vectorstore = Qdrant(
+    vectorstore = QdrantVectorStore(
         client=client,
         collection_name="schemes",
-        embeddings=embeddings
+        embedding=embeddings
     )
 
     # Add documents
