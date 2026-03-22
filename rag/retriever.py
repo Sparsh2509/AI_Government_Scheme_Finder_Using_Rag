@@ -1,4 +1,4 @@
-from langchain_qdrant import Qdrant
+from langchain_qdrant import QdrantVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 from qdrant_client import QdrantClient
 
@@ -7,10 +7,10 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 def retrieve_schemes(query):
     client = QdrantClient(path="./qdrant_db")
     
-    vectorstore = Qdrant(
+    vectorstore = QdrantVectorStore(
         client=client,
         collection_name="schemes",
-        embeddings=embeddings
+        embedding=embeddings
     )
     
     retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
