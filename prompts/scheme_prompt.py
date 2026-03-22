@@ -20,6 +20,8 @@ Instructions:
 - NEVER use the scheme code/abbreviation as the name
 - Extract the FULL scheme name from the document content
 - If full name not found, describe it in simple words
+-  For "How to apply": If steps are available in the document, list them. 
+  Otherwise provide this clickable link: "Apply at [myscheme.gov.in](https://www.myscheme.gov.in)"
 
 ---
 **Scheme Name:** [full scheme name]
