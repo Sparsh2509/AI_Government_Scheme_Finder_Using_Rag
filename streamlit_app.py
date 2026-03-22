@@ -75,7 +75,7 @@ if submit:
         """
         
         # Build search query for RAG
-        query = f"{occupation} {category} {state} government scheme {specific_need}"
+        query = f"government scheme for {occupation} {category} category {state} state {specific_need}"
         
         # Retrieve relevant schemes
         docs = retrieve_schemes(query)
