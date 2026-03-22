@@ -17,6 +17,9 @@ Relevant Schemes:
 Instructions:
 - List MAXIMUM 3 most relevant schemes
 - Use EXACTLY this format for each scheme:
+- NEVER use the scheme code/abbreviation as the name
+- Extract the FULL scheme name from the document content
+- If full name not found, describe it in simple words
 
 ---
 **Scheme Name:** [full scheme name]
