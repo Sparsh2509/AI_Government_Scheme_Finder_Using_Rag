@@ -58,7 +58,8 @@ def build_vectorstore(limit=500):
                     continue
 
                 # Get scheme name from filename
-                scheme_name = os.path.basename(pdf_file).replace('.pdf', '').replace('-', ' ').title()
+                lines = [l.strip() for l in text.split('\n') if l.strip()]
+                scheme_name = lines[0] if lines else os.path.basename(pdf_file)
 
                 # Create document
                 doc = Document(
