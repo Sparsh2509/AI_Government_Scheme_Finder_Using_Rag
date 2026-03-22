@@ -1,11 +1,13 @@
 from huggingface_hub import hf_hub_download, list_repo_files
-from langchain_community.vectorstores import Qdrant
+from langchain_qdrant import Qdrant
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 import fitz  # pymupdf
 import os
 import tempfile
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, VectorParams
 
 # Initialize embeddings
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -81,15 +83,26 @@ def build_vectorstore(limit=500):
     print("Storing in Qdrant...")
 
     # Store in Qdrant (local)
-    vectorstore = Qdrant.from_documents(
-        documents=all_docs,
-        embedding=embeddings,
-        path="./qdrant_db",        # local storage
-        collection_name="schemes"
+    # correct
+
+
+    client = QdrantClient(path="./qdrant_db")
+
+    # Create collection manually
+    client.recreate_collection(
+        collection_name="schemes",
+        vectors_config=VectorParams(size=384, distance=Distance.COSINE)
     )
 
+    vectorstore = Qdrant(
+        client=client,
+        collection_name="schemes",
+        embeddings=embeddings
+    )
+
+    # Add documents
+    vectorstore.add_documents(all_docs)
     print("Vectorstore built successfully!")
-    return vectorstore
 
 if __name__ == "__main__":
     build_vectorstore(limit=500)
