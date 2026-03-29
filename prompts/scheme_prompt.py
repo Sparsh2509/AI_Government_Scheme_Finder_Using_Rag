@@ -16,12 +16,14 @@ Relevant Schemes:
 
 Instructions:
 - List MAXIMUM 3 most relevant schemes
-- Use EXACTLY this format for each scheme:
-- NEVER use the scheme code/abbreviation as the name
+- PRIORITIZE schemes that match the user's state from their profile
+- If a scheme is from a different state, clearly mention it
+- NEVER use abbreviations as scheme names
 - Extract the FULL scheme name from the document content
-- If full name not found, describe it in simple words
--  For "How to apply": If steps are available in the document, list them. 
-  Otherwise provide this clickable link: "Apply at [myscheme.gov.in](https://www.myscheme.gov.in)"
+- For "How to apply": If steps are available list them as numbered steps.
+  If not available, generate logical application steps based on the scheme type.
+  Never give "visit website" as the only step.
+- Use EXACTLY this format:
 
 ---
 **Scheme Name:** [full scheme name]
@@ -36,12 +38,12 @@ Instructions:
 [benefits]
 
 **How to apply:**
-[steps]
+1. [step 1]
+2. [step 2]
+3. [step 3]
 
 ---
 
 - Each field MUST be on its own line
-- Never put multiple fields on same line
-- Never use abbreviations as scheme names
 - Simple language only
 """
