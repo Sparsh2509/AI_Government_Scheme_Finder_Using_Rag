@@ -107,9 +107,15 @@ def build_vectorstore(limit=2153):
         embedding=embeddings
     )
 
-    # Add documents
-    vectorstore.add_documents(all_docs)
-    print("Vectorstore built successfully!")
+    # Add documents in chunks to qudrant cloud database
+    print(f"Storing {len(all_docs)} chunks in batches...")
+    batch_size = 100
+    for i in range(0, len(all_docs), batch_size):
+        batch = all_docs[i:i + batch_size]
+        vectorstore.add_documents(batch)
+        print(f"Stored {min(i + batch_size, len(all_docs))}/{len(all_docs)} chunks")
+
+print("Vectorstore built successfully!")
 
 if __name__ == "__main__":
     build_vectorstore(limit=2153)
