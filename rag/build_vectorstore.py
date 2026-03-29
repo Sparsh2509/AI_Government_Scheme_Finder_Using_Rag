@@ -8,6 +8,8 @@ import os
 import tempfile
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams
+from dotenv import load_dotenv
+load_dotenv()
 
 # Initialize embeddings
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
