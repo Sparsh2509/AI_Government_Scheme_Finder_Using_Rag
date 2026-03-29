@@ -87,7 +87,10 @@ def build_vectorstore(limit=2153):
     # correct
 
 
-    client = QdrantClient(path="./qdrant_db")
+    client = QdrantClient(
+        url=os.getenv("QDRANT_URL"),
+        api_key=os.getenv("QDRANT_API_KEY")
+    )
 
     # Create collection manually
     client.recreate_collection(
