@@ -27,7 +27,7 @@ def extract_text_from_pdf(pdf_path):
     doc.close()
     return text.strip()
 
-def build_vectorstore(limit=500):
+def build_vectorstore(limit=2153):
     """Download PDFs, extract text, embed and store in Qdrant"""
     
     print("Fetching PDF list from HuggingFace...")
