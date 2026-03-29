@@ -82,7 +82,7 @@ if submit:
 
         query = f"{state} state {category} category {occupation} {specific_need} government scheme eligibility"
 
-        docs = retrieve_schemes(query)
+        docs = retrieve_schemes(query, state=state)
         prompt = build_scheme_prompt(user_profile, docs)
         response = llm.invoke(prompt)
 
