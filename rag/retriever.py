@@ -1,5 +1,6 @@
 import os
 import re
+from functools import lru_cache
 from langchain_qdrant import QdrantVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 from qdrant_client import QdrantClient
@@ -10,27 +11,36 @@ load_dotenv()
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 def clean_scheme_name(name):
-    # Remove everything after "Are you sure"
     name = re.sub(r'Are you sure.*', '', name)
-    # Remove Hindi text garbage
     name = re.sub(r'[^\x00-\x7F]+', '', name)
     return name.strip()
+
+@lru_cache(maxsize=1)
+def get_vectorstore():
+    client = QdrantClient(
+        url=os.getenv("QDRANT_URL"),
+        api_key=os.getenv("QDRANT_API_KEY")
+    )
+    return QdrantVectorStore(
+        client=client,
+        collection_name="schemes",
+        embedding=embeddings
+    )
 
 def retrieve_schemes(query, state=None):
     vectorstore = get_vectorstore()
     retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
     docs = retriever.invoke(query)
-    
+
     # Filter by state if possible
     if state:
         state_docs = [doc for doc in docs if state.lower() in doc.page_content.lower()]
-        # If state specific docs found use them, else use all
         if state_docs:
             docs = state_docs[:5]
         else:
             docs = docs[:5]
-    
+
     for doc in docs:
         doc.metadata['scheme_name'] = clean_scheme_name(doc.metadata['scheme_name'])
-    
+
     return docs
