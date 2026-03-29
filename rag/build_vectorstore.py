@@ -95,9 +95,10 @@ def build_vectorstore(limit=2153):
     )
 
     # Create collection manually
-    client.recreate_collection(
-        collection_name="schemes",
-        vectors_config=VectorParams(size=384, distance=Distance.COSINE)
+    if not client.collection_exists("schemes"):
+        client.create_collection(
+            collection_name="schemes",
+            vectors_config=VectorParams(size=384, distance=Distance.COSINE)
     )
 
     vectorstore = QdrantVectorStore(
