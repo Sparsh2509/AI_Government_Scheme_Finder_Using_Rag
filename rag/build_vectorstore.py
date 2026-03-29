@@ -106,4 +106,4 @@ def build_vectorstore(limit=2153):
     print("Vectorstore built successfully!")
 
 if __name__ == "__main__":
-    build_vectorstore(limit=500)
+    build_vectorstore(limit=2153)
