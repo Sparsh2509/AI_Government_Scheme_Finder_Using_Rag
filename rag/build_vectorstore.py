@@ -6,22 +6,54 @@ from langchain_core.documents import Document
 import fitz  # pymupdf
 import os
 import tempfile
+import time
+from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor
+
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams
-from dotenv import load_dotenv
+
 load_dotenv()
 
-# Initialize embeddings
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+#  SETTINGS 
+BATCH_SIZE = 200
+MAX_RETRIES = 3
+MAX_WORKERS = 5
+COLLECTION_NAME = "schemes"
 
-# Text splitter
+#  EMBEDDINGS 
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
+
+#  TEXT SPLITTER 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=500,
     chunk_overlap=50
 )
 
+#  QDRANT CLIENT 
+client = QdrantClient(
+    url=os.getenv("QDRANT_URL"),
+    api_key=os.getenv("QDRANT_API_KEY"),
+    timeout=300
+)
+
+# Create collection if not exists
+if not client.collection_exists(COLLECTION_NAME):
+    client.create_collection(
+        collection_name=COLLECTION_NAME,
+        vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+    )
+
+vectorstore = QdrantVectorStore(
+    client=client,
+    collection_name=COLLECTION_NAME,
+    embedding=embeddings
+)
+
+#  PDF TEXT EXTRACTION 
 def extract_text_from_pdf(pdf_path):
-    """Extract text from a PDF file"""
     doc = fitz.open(pdf_path)
     text = ""
     for page in doc:
@@ -29,21 +61,31 @@ def extract_text_from_pdf(pdf_path):
     doc.close()
     return text.strip()
 
+#  BATCH UPLOAD FUNCTION 
+def upload_batch(batch, batch_id):
+    for attempt in range(MAX_RETRIES):
+        try:
+            vectorstore.add_documents(batch)
+            print(f" Batch {batch_id} uploaded ({len(batch)} docs)")
+            return
+        except Exception as e:
+            print(f" Retry {attempt+1} for batch {batch_id}...", e)
+            time.sleep(5)
+
+#  MAIN FUNCTION 
 def build_vectorstore(limit=2153):
-    """Download PDFs, extract text, embed and store in Qdrant"""
-    
     print("Fetching PDF list from HuggingFace...")
+
     files = list(list_repo_files("shrijayan/gov_myscheme", repo_type="dataset"))
     pdf_files = [f for f in files if f.endswith('.pdf') and 'copy' not in f]
     pdf_files = pdf_files[:limit]
-    
+
     print(f"Total PDFs to process: {len(pdf_files)}")
 
-    all_docs = []
+    batch_counter = 0
 
     for i, pdf_file in enumerate(pdf_files):
         try:
-            # Download to temp file
             with tempfile.TemporaryDirectory() as tmpdir:
                 path = hf_hub_download(
                     repo_id="shrijayan/gov_myscheme",
@@ -52,18 +94,15 @@ def build_vectorstore(limit=2153):
                     local_dir=tmpdir
                 )
 
-                # Extract text
                 text = extract_text_from_pdf(path)
 
                 if not text:
                     print(f"[{i+1}] Empty PDF skipped: {pdf_file}")
                     continue
 
-                # Get scheme name from filename
                 lines = [l.strip() for l in text.split('\n') if l.strip()]
                 scheme_name = lines[0] if lines else os.path.basename(pdf_file)
 
-                # Create document
                 doc = Document(
                     page_content=text,
                     metadata={
@@ -72,50 +111,27 @@ def build_vectorstore(limit=2153):
                     }
                 )
 
-                # Chunk it
                 chunks = splitter.split_documents([doc])
-                all_docs.extend(chunks)
 
-                print(f"[{i+1}/{len(pdf_files)}] Processed: {scheme_name} — {len(chunks)} chunks")
+                print(f"[{i+1}/{len(pdf_files)}] {scheme_name} → {len(chunks)} chunks")
+
+                # Upload in batches using threads
+                batches = [
+                    chunks[j:j+BATCH_SIZE]
+                    for j in range(0, len(chunks), BATCH_SIZE)
+                ]
+
+                with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                    for batch in batches:
+                        executor.submit(upload_batch, batch, batch_counter)
+                        batch_counter += 1
 
         except Exception as e:
             print(f"[{i+1}] Failed: {pdf_file} — {e}")
             continue
 
-    print(f"\nTotal chunks created: {len(all_docs)}")
-    print("Storing in Qdrant...")
+    print("\n Vectorstore built successfully!")
 
-    # Store in Qdrant (local)
-    # correct
-
-
-    client = QdrantClient(
-        url=os.getenv("QDRANT_URL"),
-        api_key=os.getenv("QDRANT_API_KEY")
-    )
-
-    # Create collection manually
-    if not client.collection_exists("schemes"):
-        client.create_collection(
-            collection_name="schemes",
-            vectors_config=VectorParams(size=384, distance=Distance.COSINE)
-    )
-
-    vectorstore = QdrantVectorStore(
-        client=client,
-        collection_name="schemes",
-        embedding=embeddings
-    )
-
-    # Add documents in batches to Qdrant cloud database
-    print(f"Storing {len(all_docs)} chunks in batches...")
-    batch_size = 100
-    for i in range(0, len(all_docs), batch_size):
-        batch = all_docs[i:i + batch_size]
-        vectorstore.add_documents(batch)
-        print(f"Stored {min(i + batch_size, len(all_docs))}/{len(all_docs)} chunks")
-
-print("Vectorstore built successfully!")
 
 if __name__ == "__main__":
     build_vectorstore(limit=2153)
