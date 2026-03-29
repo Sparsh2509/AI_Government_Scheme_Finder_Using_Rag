@@ -80,7 +80,7 @@ if submit:
         Looking for: {specific_need if specific_need else 'General schemes'}
         """
 
-        query = f"government scheme for {occupation} {category} category {state} state {specific_need}"
+        query = f"{state} state {category} category {occupation} {specific_need} government scheme eligibility"
 
         docs = retrieve_schemes(query)
         prompt = build_scheme_prompt(user_profile, docs)
