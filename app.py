@@ -38,10 +38,13 @@ Category: {category}
 Looking for: {specific_need}
 """
 
-query = f"government scheme for {occupation} {category} category {state} state {specific_need}"
+if specific_need:
+    query = f"{specific_need} scheme for {occupation} or {category} category in {state}"
+else:
+    query = f"government scheme for {occupation} and {category} category in {state} state"
 
 print("\nRetrieving relevant schemes...")
-docs = retrieve_schemes(query)
+docs = retrieve_schemes(query, state=state)
 
 prompt = build_scheme_prompt(user_profile, docs)
 
