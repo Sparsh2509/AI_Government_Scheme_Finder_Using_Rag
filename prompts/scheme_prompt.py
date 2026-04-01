@@ -23,6 +23,7 @@ Instructions:
 - For "How to apply": If steps are available list them as numbered steps.
   If not available, generate logical application steps based on the scheme type.
   Never give "visit website" as the only step.
+- For "Benefits": If exact benefits are not explicitly detailed in the text, use your general knowledge of Indian government schemes to logically explain what the benefits are. Do not say "not explicitly detailed" or similar phrases.
 - Use EXACTLY this format:
 
 ---

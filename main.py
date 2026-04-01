@@ -54,8 +54,10 @@ async def find_schemes(profile: UserProfile):
         """
 
         # Generate search query
-        query_need = profile.specific_need if profile.specific_need else ""
-        query = f"{profile.state} state {profile.category} category {profile.occupation} {query_need} government scheme eligibility"
+        if profile.specific_need:
+            query = f"{profile.specific_need} scheme for {profile.occupation} or {profile.category} category in {profile.state}"
+        else:
+            query = f"government scheme for {profile.occupation} and {profile.category} category in {profile.state} state"
 
         # Retrieve documents
         docs = retrieve_schemes(query, state=profile.state)
