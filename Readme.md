@@ -13,7 +13,7 @@ Live REST API: [https://ai-government-scheme-finder-using-rag.onrender.com](http
 
 - Discover relevant government schemes across India (Housing, Education, Agriculture, etc.)
 - Context-aware retrieval using RAG
-- Semantic scheme matching using Qdrant Vector Cloud
+- Semantic scheme matching using Qdrant Cloud Vector Database (zero local storage footprint)
 - HuggingFace Serverless embeddings (all-MiniLM-L6-v2)
 - Gemini 2.5 Flash Lite for generation and inferring benefits
 - Interactive Streamlit Web UI
@@ -45,7 +45,7 @@ Gemini LLM Generates Final Eligibility Report
 - Streamlit
 - LangChain
 - HuggingFace Endpoints
-- Qdrant Vector Database
+- Qdrant Cloud Vector Database (Fully managed, no local storage required)
 - Google Gemini API
 - dotenv
 - FastAPI (REST API)
