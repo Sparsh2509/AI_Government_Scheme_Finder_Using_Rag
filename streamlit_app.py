@@ -6,17 +6,25 @@ from prompts.scheme_prompt import build_scheme_prompt
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
-gemini_key = os.getenv("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
+
+try:
+    gemini_key = os.getenv("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
+except Exception:
+    gemini_key = os.getenv("GEMINI_API_KEY")
 
 if not gemini_key:
-    st.error("GEMINI_API_KEY not found")
+    st.error("GEMINI_API_KEY not found. Please set it in .env or Streamlit secrets.")
     st.stop()
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
-    temperature=0.3,
-    api_key=gemini_key
-)
+try:
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash-lite",
+        temperature=0.3,
+        api_key=gemini_key
+    )
+except Exception as e:
+    st.error(f"Failed to initialize Gemini LLM: {e}")
+    st.stop()
 
 st.set_page_config(
     page_title="Indian Government Scheme Finder",
@@ -68,27 +76,31 @@ if submit:
         st.stop()
 
     with st.spinner("🔍 Searching through 2000+ government schemes for you..."):
+        try:
+            user_profile = f"""
+            Name: {name}
+            Age: {age}
+            Gender: {gender}
+            State: {state}
+            Occupation: {occupation}
+            Annual Income: {income}
+            Category: {category}
+            Looking for: {specific_need if specific_need else 'General schemes'}
+            """
 
-        user_profile = f"""
-        Name: {name}
-        Age: {age}
-        Gender: {gender}
-        State: {state}
-        Occupation: {occupation}
-        Annual Income: {income}
-        Category: {category}
-        Looking for: {specific_need if specific_need else 'General schemes'}
-        """
+            query = f"{state} state {category} category {occupation} {specific_need} government scheme eligibility"
 
-        query = f"{state} state {category} category {occupation} {specific_need} government scheme eligibility"
+            docs = retrieve_schemes(query, state=state)
+            prompt = build_scheme_prompt(user_profile, docs)
+            response = llm.invoke(prompt)
 
-        docs = retrieve_schemes(query, state=state)
-        prompt = build_scheme_prompt(user_profile, docs)
-        response = llm.invoke(prompt)
+        except Exception as e:
+            st.error(f"Something went wrong: {e}")
+            st.stop()
 
     st.markdown("---")
-    st.success(f"✅ Found relevant schemes for **{name}**!")
-    st.markdown("### 📋 Schemes You May Be Eligible For")
+    st.success(f"Found relevant schemes for **{name}**!")
+    st.markdown("###Schemes You May Be Eligible For")
     st.markdown(response.content)
     st.markdown("---")
 

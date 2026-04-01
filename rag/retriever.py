@@ -2,13 +2,20 @@ import os
 import re
 from functools import lru_cache
 from langchain_qdrant import QdrantVectorStore
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from qdrant_client import QdrantClient
 from dotenv import load_dotenv
 
 load_dotenv()
 
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+hf_token = os.getenv("HF_TOKEN")
+if not hf_token:
+    raise ValueError("HF_TOKEN not found in environment variables")
+
+embeddings = HuggingFaceEndpointEmbeddings(
+    model="sentence-transformers/all-MiniLM-L6-v2",
+    huggingfacehub_api_token=hf_token
+)
 
 def clean_scheme_name(name):
     name = re.sub(r'Are you sure.*', '', name)
